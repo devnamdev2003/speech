@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+      <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.min.css'>
+
+</head>
+
+<body translate="no">
+      <h1>Speech Recognition</h1>
+      <i class="fas fa-microphone" id="mic"></i>
+      Select Voice: <select id='voiceList'></select> <br><br>
+      <input type="text" id="text" name="first" placeholder="Say something to the mic..." readonly />
+
+      <input type="submit" id="btnSpeak" value="speak">
+
+      <script id="rendered-js">
+            let isRecording = false;
+            let recognition;
+
+            window.onload = () => {
+                  window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                  recognition = new SpeechRecognition();
+                  recognition.continuous = true;
+                  document.getElementById('mic').addEventListener('click', onClickMic);
+                  recognition.onresult = onSpeech;
+            };
+
+            function onClickMic(event) {
+                  event.target.classList.toggle('fa-microphone');
+                  event.target.classList.toggle('fa-microphone-slash');
+
+                  if (isRecording) {
+                        recognition.stop();
+                  } else {
+                        recognition.start();
+                  }
+
+                  isRecording = !isRecording;
+            }
+
+            function onSpeech(event) {
+                  const lastElIndex = event.results.length - 1;
+                  const text = event.results[lastElIndex][0].transcript;
+                  document.getElementById('text').value = text;
+            }
+      </script>
+      <script>
+            var text = document.querySelector('#text');
+            var voiceList = document.querySelector('#voiceList');
+            var btnSpeak = document.querySelector('#btnSpeak');
+            var synth = window.speechSynthesis;
+            var voices = [];
+
+            PopulateVoices();
+            if (speechSynthesis !== undefined) {
+                  speechSynthesis.onvoiceschanged = PopulateVoices;
+            }
+
+            btnSpeak.addEventListener('click', () => {
+                  var toSpeak = new SpeechSynthesisUtterance(text.value);
+                  var selectedVoiceName = voiceList.selectedOptions[0].getAttribute('data-name');
+                  voices.forEach((voice) => {
+                        if (voice.name === selectedVoiceName) {
+                              toSpeak.voice = voice;
+                        }
+                  });
+                  synth.speak(toSpeak);
+            });
+
+            function PopulateVoices() {
+                  voices = synth.getVoices();
+                  var selectedIndex = voiceList.selectedIndex < 85 ? 85 : voiceList.selectedIndex;
+                  voiceList.innerHTML = '';
+                  voices.forEach((voice) => {
+                        var listItem = document.createElement('option');
+                        listItem.textContent = voice.name;
+                        listItem.setAttribute('data-lang', voice.lang);
+                        listItem.setAttribute('data-name', voice.name);
+                        voiceList.appendChild(listItem);
+                  });
+
+                  voiceList.selectedIndex = selectedIndex;
+            }
+      </script>
+</body>
+
+</html>
